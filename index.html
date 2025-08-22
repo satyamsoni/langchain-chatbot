@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chatbot UI</title>
+  <style>
+    body {
+      font-family: monospace;
+      margin: 20px;
+    }
+
+    #chat {
+      width: 100%;
+      height: 400px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      overflow-y: scroll;
+      white-space: pre-wrap;
+      background-color: #f9f9f9;
+    }
+
+    #inputArea {
+      margin-top: 10px;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Chat with Local LLM</h2>
+  <div id="chat"></div>
+
+  <div id="inputArea">
+    <input type="text" id="input" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+  <script>
+    const ws = new WebSocket("ws://127.0.0.1:8000/ws/chat");
+    const chatBox = document.getElementById("chat");
+    const inputField = document.getElementById("input");
+
+    ws.onmessage = (event) => {
+      if (event.data === "[[END]]") {
+        chatBox.innerHTML += "<br/>";
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return;
+      }
+      chatBox.innerHTML += event.data;
+    };
+
+    function sendMessage() {
+      const message = inputField.value;
+      if (!message.trim()) return;
+      chatBox.innerHTML += `<br/><b>You:</b> ${message}<br/><b>System:</b> `;
+      ws.send(message);
+      inputField.value = "";
+    }
+
+    inputField.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
